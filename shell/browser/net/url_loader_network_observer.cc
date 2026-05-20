@@ -7,6 +7,8 @@
 #include "base/functional/bind.h"
 #include "content/public/browser/browser_thread.h"
 #include "services/network/public/mojom/shared_storage.mojom.h"
+#include "shell/browser/electron_browser_context.h"
+#include "shell/browser/electron_permission_manager.h"
 #include "shell/browser/login_handler.h"
 
 namespace electron {
@@ -59,6 +61,11 @@ class LoginHandlerDelegate {
 }  // namespace
 
 URLLoaderNetworkObserver::URLLoaderNetworkObserver() = default;
+
+URLLoaderNetworkObserver::URLLoaderNetworkObserver(
+    ElectronBrowserContext* browser_context)
+    : browser_context_(browser_context) {}
+
 URLLoaderNetworkObserver::~URLLoaderNetworkObserver() = default;
 
 mojo::PendingRemote<network::mojom::URLLoaderNetworkServiceObserver>
@@ -124,7 +131,15 @@ void URLLoaderNetworkObserver::Clone(
 
 void URLLoaderNetworkObserver::OnPlatformLocalNetworkPermissionRequired(
     OnPlatformLocalNetworkPermissionRequiredCallback callback) {
-  std::move(callback).Run(false);
+  if (!browser_context_) {
+    std::move(callback).Run(false);
+    return;
+  }
+
+  auto* permission_manager = static_cast<ElectronPermissionManager*>(
+      browser_context_->GetPermissionControllerDelegate());
+  permission_manager->RequestPlatformLocalNetworkPermission(
+      std::move(callback));
 }
 
 }  // namespace electron

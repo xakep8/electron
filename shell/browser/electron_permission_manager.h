@@ -76,6 +76,9 @@ class ElectronPermissionManager : public content::PermissionControllerDelegate {
       base::DictValue details,
       StatusCallback response_callback);
 
+  void RequestPlatformLocalNetworkPermission(
+      base::OnceCallback<void(bool)> response_callback);
+
   // Handler to dispatch permission requests in JS.
   void SetPermissionRequestHandler(const RequestHandler& handler);
   void SetPermissionCheckHandler(const CheckHandler& handler);
@@ -158,6 +161,10 @@ class ElectronPermissionManager : public content::PermissionControllerDelegate {
       const content::PermissionRequestDescription& request_description,
       base::DictValue details,
       StatusesCallback callback);
+
+  void RequestPermissionFromSession(blink::PermissionType permission,
+                                    base::DictValue details,
+                                    StatusCallback callback);
 
   RequestHandler request_handler_;
   CheckHandler check_handler_;
